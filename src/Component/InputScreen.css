@@ -1,0 +1,14 @@
+@font-face {
+  font-family: "digital";
+  src: url("../Assets/fonts/digital-7.ttf");
+}
+
+.outputScreen {
+  font-size: 1.6rem;
+  color: white;
+}
+
+.formulaScreen {
+  font-size: 1rem;
+  color: orange;
+}
