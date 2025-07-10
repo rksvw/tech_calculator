@@ -1,130 +1,28 @@
 import { useState } from "react";
 import "./ButtonNumber.css";
-import { numbersObj } from "../Service/ButtonService";
+import evaluateExpressions, { numbersObj } from "../Service/ButtonService";
 
 export default function ButtonNumber({
-  pickValue,
   setPickValue, // to show on calculator screen
   setCalculation, // to show full expression or log
-  calculation, // current expression (string)
 }) {
   const [makeNumber, setMakeNumber] = useState(""); // input builder
-  const [error, setError] = useState(""); // for future error display
 
   const handleClick = (e) => {
     const value = e.target.value;
     const operators = ["+", "-", "*", "/"];
     const lastChar = makeNumber.slice(-1);
 
-    // All Clear
-    if (value === "AC") {
-      setMakeNumber("");
-      setCalculation("");
-      setPickValue("0");
+    const payload = evaluateExpressions(value, makeNumber, operators, lastChar);
+
+    if (payload !== -1) {
+      setPickValue(payload[0]);
+      setMakeNumber(payload[1]);
+      setCalculation(payload[2]);
+      return;
+    } else {
       return;
     }
-
-    // Equals
-    if (value === "=") {
-      try {
-        const result = eval(makeNumber);
-        setPickValue(result.toString());
-        setCalculation(makeNumber + "=" + result);
-        setMakeNumber(result.toString());
-      } catch (error) {
-        setPickValue("NaN");
-        setCalculation("Invalid Expression");
-        setMakeNumber("");
-      }
-      return;
-    }
-
-    // Multiple operators logic (replace previous operator unless - for negative)
-    if (operators.includes(value)) {
-      if (operators.includes(lastChar)) {
-        if (value === "-" && lastChar !== "-") {
-          setMakeNumber(makeNumber + value);
-          setCalculation(makeNumber + value);
-          setPickValue(value);
-          return;
-        }
-
-        // Replace last operator
-        let newExp = makeNumber;
-        while (
-          operators.includes(newExp.slice(-1)) &&
-          !(newExp.slice(-2) === "*-" || newExp.slice(-2) === "/-")
-        ) {
-          newExp = newExp.slice(0, -1);
-        }
-
-        const updated = newExp + value;
-        setMakeNumber(updated);
-        setPickValue(value);
-        setCalculation(updated);
-        return;
-      }
-
-      // Normal case: single operator pressed
-      const updated = makeNumber + value;
-      setMakeNumber(updated);
-      setCalculation(updated);
-      setPickValue(value);
-      return;
-    }
-
-    // Decimal handling
-    if (value === ".") {
-      const parts = makeNumber.split(/[\+\-\*\/]/);
-      const currentNum = parts[parts.length - 1];
-
-      // Prevent two decimals in the same number
-      if (currentNum.includes(".")) return;
-
-      // If starting with ".", and "0."
-      if (makeNumber === "" || operators.includes(lastChar)) {
-        const updated = makeNumber + "0.";
-        setMakeNumber(updated);
-        setCalculation(updated);
-        setPickValue("0.");
-        return;
-      }
-    }
-
-    // Append value
-    let newExp = makeNumber;
-
-    // Prevent multiple leading zeros like 000
-    if (value === "0") {
-      const parts = makeNumber.split(/[\+\-\*\/]/);
-      const currentNum = parts[parts.length - 1];
-
-      // If current number is only "0", block adding more zeros
-      if (currentNum === "0") {
-        return;
-      }
-    }
-
-    // Prevent number like 012 -> convert to 12
-    if (/[1-9]/.test(value)) {
-      const parts = makeNumber.split(/[\+\-\*\/]/);
-      const currentNum = parts[parts.length - 1];
-
-      // If current number is only "0", block adding more zeros
-      if (currentNum === "0") {
-        // Remove that leading 0
-        newExp = makeNumber.slice(0, -1);
-      }
-    }
-
-    newExp += value;
-    setMakeNumber(newExp);
-    setCalculation(newExp);
-
-    // Show only the last full number (not the expression) in pickvalue
-    const parts = newExp.split(/[\+\-\*\/]/);
-    const currentNum = parts[parts.length - 1];
-    setPickValue(currentNum);
   };
 
   return (

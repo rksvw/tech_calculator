@@ -34,8 +34,6 @@ export default function CalculatorComponent() {
           <CalculatorPad
             setPickValue={setPickValue}
             setCalculation={setCalculation}
-            pickValue={pickValue}
-            calculation={calculation}
           />
         </div>
       </div>
