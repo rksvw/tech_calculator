@@ -1,44 +1,130 @@
 import { useState } from "react";
 import "./ButtonNumber.css";
+import { numbersObj } from "../Service/ButtonService";
 
 export default function ButtonNumber({
-  setPickValue,
-  setCalculation,
-  calculation,
+  pickValue,
+  setPickValue, // to show on calculator screen
+  setCalculation, // to show full expression or log
+  calculation, // current expression (string)
 }) {
-  const [flag, setFlag] = useState(0);
-  const [makeNumber, setMakeNumber] = useState("");
-
-  const numbersObj = [
-    { id: "clear", value: "AC" },
-    { id: "divide", value: "/" },
-    { id: "multiply", value: "*" },
-    { id: "seven", value: "7" },
-    { id: "eight", value: "8" },
-    { id: "nine", value: "9" },
-    { id: "subtract", value: "-" },
-    { id: "four", value: "4" },
-    { id: "five", value: "5" },
-    { id: "six", value: "6" },
-    { id: "add", value: "+" },
-    { id: "one", value: "1" },
-    { id: "two", value: "2" },
-    { id: "three", value: "3" },
-    { id: "equals", value: "=" },
-    { id: "zero", value: "0" },
-    { id: "decimal", value: "." },
-  ];
-
-
-  const handleChange = () => {
-
-
-  }
+  const [makeNumber, setMakeNumber] = useState(""); // input builder
+  const [error, setError] = useState(""); // for future error display
 
   const handleClick = (e) => {
     const value = e.target.value;
-    setPickValue(value);
-    setMakeNumber(makeNumber + value);
+    const operators = ["+", "-", "*", "/"];
+    const lastChar = makeNumber.slice(-1);
+
+    // All Clear
+    if (value === "AC") {
+      setMakeNumber("");
+      setCalculation("");
+      setPickValue("0");
+      return;
+    }
+
+    // Equals
+    if (value === "=") {
+      try {
+        const result = eval(makeNumber);
+        setPickValue(result.toString());
+        setCalculation(makeNumber + "=" + result);
+        setMakeNumber(result.toString());
+      } catch (error) {
+        setPickValue("NaN");
+        setCalculation("Invalid Expression");
+        setMakeNumber("");
+      }
+      return;
+    }
+
+    // Multiple operators logic (replace previous operator unless - for negative)
+    if (operators.includes(value)) {
+      if (operators.includes(lastChar)) {
+        if (value === "-" && lastChar !== "-") {
+          setMakeNumber(makeNumber + value);
+          setCalculation(makeNumber + value);
+          setPickValue(value);
+          return;
+        }
+
+        // Replace last operator
+        let newExp = makeNumber;
+        while (
+          operators.includes(newExp.slice(-1)) &&
+          !(newExp.slice(-2) === "*-" || newExp.slice(-2) === "/-")
+        ) {
+          newExp = newExp.slice(0, -1);
+        }
+
+        const updated = newExp + value;
+        setMakeNumber(updated);
+        setPickValue(value);
+        setCalculation(updated);
+        return;
+      }
+
+      // Normal case: single operator pressed
+      const updated = makeNumber + value;
+      setMakeNumber(updated);
+      setCalculation(updated);
+      setPickValue(value);
+      return;
+    }
+
+    // Decimal handling
+    if (value === ".") {
+      const parts = makeNumber.split(/[\+\-\*\/]/);
+      const currentNum = parts[parts.length - 1];
+
+      // Prevent two decimals in the same number
+      if (currentNum.includes(".")) return;
+
+      // If starting with ".", and "0."
+      if (makeNumber === "" || operators.includes(lastChar)) {
+        const updated = makeNumber + "0.";
+        setMakeNumber(updated);
+        setCalculation(updated);
+        setPickValue("0.");
+        return;
+      }
+    }
+
+    // Append value
+    let newExp = makeNumber;
+
+    // Prevent multiple leading zeros like 000
+    if (value === "0") {
+      const parts = makeNumber.split(/[\+\-\*\/]/);
+      const currentNum = parts[parts.length - 1];
+
+      // If current number is only "0", block adding more zeros
+      if (currentNum === "0") {
+        return;
+      }
+    }
+
+    // Prevent number like 012 -> convert to 12
+    if (/[1-9]/.test(value)) {
+      const parts = makeNumber.split(/[\+\-\*\/]/);
+      const currentNum = parts[parts.length - 1];
+
+      // If current number is only "0", block adding more zeros
+      if (currentNum === "0") {
+        // Remove that leading 0
+        newExp = makeNumber.slice(0, -1);
+      }
+    }
+
+    newExp += value;
+    setMakeNumber(newExp);
+    setCalculation(newExp);
+
+    // Show only the last full number (not the expression) in pickvalue
+    const parts = newExp.split(/[\+\-\*\/]/);
+    const currentNum = parts[parts.length - 1];
+    setPickValue(currentNum);
   };
 
   return (
@@ -53,8 +139,6 @@ export default function ButtonNumber({
           margin: "auto",
           paddingTop: "5px",
         }}
-
-        onChange={handleChange}
       >
         {numbersObj.map((item) => {
           let style = {

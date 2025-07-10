@@ -5,6 +5,7 @@ export default function InputScreen({ screen, calculation }) {
   return (
     <div
       className={screen}
+      id={screen === "outputScreen" ? "display" : "expression"}
       style={{
         fontFamily: "digital",
         fontWeight: "600",

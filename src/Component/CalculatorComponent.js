@@ -3,12 +3,8 @@ import CalculatorPad from "./CalculatorPad";
 import CalculatorScreen from "./CalculatorScreen";
 
 export default function CalculatorComponent() {
-  const [pickValue, setPickValue] = useState(0);
-  const [calculation, setCalculation] = useState("0");
-
-
-
-
+  const [pickValue, setPickValue] = useState("0");
+  const [calculation, setCalculation] = useState("");
 
   return (
     <>
@@ -25,7 +21,7 @@ export default function CalculatorComponent() {
         }}
       >
         <div
-          className="card"
+          className="calculator"
           style={{
             width: "320px",
             border: "2px solid #47476b",
@@ -35,7 +31,12 @@ export default function CalculatorComponent() {
           }}
         >
           <CalculatorScreen pickValue={pickValue} calculation={calculation} />
-          <CalculatorPad setPickValue={setPickValue} setCalculation={setCalculation} calculation={calculation} />
+          <CalculatorPad
+            setPickValue={setPickValue}
+            setCalculation={setCalculation}
+            pickValue={pickValue}
+            calculation={calculation}
+          />
         </div>
       </div>
     </>
